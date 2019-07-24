@@ -3,15 +3,50 @@ from sys import argv
 import json
 import pymysql
 
+connection =pymysql.connect(host='localhost',
+                            user='root',
+                            password='root',
+                            db='bookshoop',
+                            cursorclass=pymysql.cursors.DictCursor)
+
+
+
+
 @get("/admin")
 def admin_portal():
 	return template("pages/admin.html")
 
-
-
 @get("/")
 def index():
     return template("index.html")
+
+@get("/categories")
+def categories():
+    try:
+        with connection.cursor() as cursor:
+            query = "SELECT * FROM  categories"
+            cursor.execute(query)
+        return json.dumps({'CATEGORIES':cursor.fetchall()})
+    except:
+         return json.dumps({'ERROR':'internal error'})
+     
+
+@get('/category/<id>/products')
+def loadProducts(id):
+   try:
+        with connection.cursor() as cursor:
+                # query = "SELECT * FROM products"
+                
+                query= f'SELECT * FROM product WHERE id="{id}"'
+                cursor.execute(query)
+        return json.dumps({'PRODUCTS':cursor.fetchone()})
+   except:
+         return json.dumps({'error':'internal error'})     
+     
+     
+     
+     
+
 
 
 @get('/js/<filename:re:.*\.js>')
@@ -29,4 +64,4 @@ def images(filename):
     return static_file(filename, root='images')
 
 
-run(host='0.0.0.0', port=argv[1])
+run(host='0.0.0.0', port=argv[1],debug=True,reloader=True)
