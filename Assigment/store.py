@@ -35,11 +35,10 @@ def categories():
 def loadProducts(id):
    try:
         with connection.cursor() as cursor:
-                # query = "SELECT * FROM products"
                 
                 query= f'SELECT * FROM product WHERE id="{id}"'
                 cursor.execute(query)
-        return json.dumps({'PRODUCTS':cursor.fetchone()})
+        return json.dumps({'PRODUCTS':cursor.fetchall()})
    except:
          return json.dumps({'error':'internal error'})     
      
