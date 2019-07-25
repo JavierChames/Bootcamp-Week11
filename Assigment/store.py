@@ -74,7 +74,6 @@ def getProdcut(id):
 @post("/category")
 def add_category():
     name =request.forms.get("name")
-    print(name)
     try:
         with connection.cursor() as cursor:
             query = f"insert into categories (name) values ('{name}')"
@@ -83,6 +82,23 @@ def add_category():
             return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201})
     except:
             return json.dumps({'ERROR':'error entering new category'})
+     
+@delete("/category/<id>")
+def dell_category(id):
+    try:
+        with connection.cursor() as cursor:
+            print(id)
+            query=f'DELETE FROM categories WHERE id="{id}"'
+            print(query)
+            cursor.execute(query)
+            connection.commit()
+            return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201})
+    except:
+            return json.dumps({'ERROR':'category not found, "CODE": 404'})   
+     
+     
+     
+     
      
 
 @get('/js/<filename:re:.*\.js>')
