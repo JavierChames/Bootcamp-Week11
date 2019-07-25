@@ -61,12 +61,29 @@ def getProdcut(id):
                 
                 query= f'SELECT * FROM product WHERE id="{id}"'
                 cursor.execute(query)
-        return json.dumps(cursor.fetchall())
+                # print(json.dumps(cursor.fetchall()))
+                # if json.dumps(cursor.fetchall()) !=0:
+                    # print(json.dumps(cursor.fetchall()))
+                return json.dumps(cursor.fetchall())
+                # else:
+                    # return json.dumps({'error':'Product not found'})
    except:
-         return json.dumps({'error':'Product not found'})     
+           return json.dumps({'error':'DB problem'})     
+       
+       
+@post("/category")
+def add_category():
+    name =request.forms.get("name")
+    print(name)
+    try:
+        with connection.cursor() as cursor:
+            query = f"insert into categories (name) values ('{name}')"
+            cursor.execute(query)
+            connection.commit()
+            return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201})
+    except:
+            return json.dumps({'ERROR':'error entering new category'})
      
-     
-
 
 @get('/js/<filename:re:.*\.js>')
 def javascripts(filename):
@@ -83,4 +100,4 @@ def images(filename):
     return static_file(filename, root='images')
 
 
-run(host='0.0.0.0', port=argv[1],debug=True,reloader=True)
+run(host='localhost', port=5000,debug=True,reloader=True)
