@@ -36,16 +36,36 @@ def loadProducts(id):
    try:
         with connection.cursor() as cursor:
                 
-                query= f'SELECT * FROM product WHERE id="{id}"'
+                query= f'SELECT * FROM product WHERE category="{id}"'
                 cursor.execute(query)
         return json.dumps({'PRODUCTS':cursor.fetchall()})
    except:
          return json.dumps({'error':'internal error'})     
      
      
+@get("/products")
+def products():
+    try:
+        with connection.cursor() as cursor:
+            query = "SELECT * FROM  product"
+            cursor.execute(query)
+        return json.dumps({'PRODUCTS':cursor.fetchall()})
+    except:
+         return json.dumps({'ERROR':'internal error'})     
      
      
-
+@get('/product/<id>')
+def getProdcut(id):
+   try:
+        with connection.cursor() as cursor:
+                
+                query= f'SELECT * FROM product WHERE id="{id}"'
+                cursor.execute(query)
+        return json.dumps(cursor.fetchall())
+   except:
+         return json.dumps({'error':'Product not found'})     
+     
+     
 
 
 @get('/js/<filename:re:.*\.js>')
