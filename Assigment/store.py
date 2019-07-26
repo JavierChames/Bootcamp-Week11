@@ -103,24 +103,62 @@ def product():
     favorite =request.forms.get("favorite")
     price=request.forms.get("price")
     img_url=request.forms.get("img_url")
-    
+    print(favorite)
     if favorite =="on":
          favorite =1
     else:
-         favroite=0
+         favorite=0
     try:
         with connection.cursor() as cursor:
             prequery= f"select name from categories where id ='{cat}'"
             cursor.execute(prequery)
             cat_name=(cursor.fetchone()['name'])
-            query = f"insert into product (title,description,price,img_url,category,favorite) values ('{name}','{cat_name}','{price}','{img_url}','{cat}','{favorite}')"           
+            query = f"insert into product (title,description,price,img_url,category,favorite) values ('{name}','{cat_name}','{price}','{img_url}','{cat}','{favorite}')"
             cursor.execute(query)
             connection.commit()
-            return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201})
+            return json.dumps({'CAT_ID': cursor.lastrowid, "SUCCESS":"The product was added successfully"})
     except:
-            return json.dumps({'ERROR':'error entering new product'})   
-     
-     
+            return json.dumps({'ERROR':'​The product was not create due to an error'})   
+    
+    
+# @post("/product")
+# def update_product():
+#     cat=request.forms.get("category")
+#     name =request.forms.get("title")
+#     description =request.forms.get("desc")
+#     favorite =request.forms.get("favorite")
+#     price=request.forms.get("price")
+#     img_url=request.forms.get("img_url")
+    
+#     if favorite =="on":
+#          favorite =1
+#     else:
+#          favroite=0
+#     try:
+#         with connection.cursor() as cursor:
+#             prequery= f"update  from categories where id ='{cat}'"
+#             cursor.execute(prequery)
+#             cat_name=(cursor.fetchone()['name'])
+#             query = f"update product (title,description,price,img_url,category,favorite) values ('{name}','{cat_name}','{price}','{img_url}','{cat}','{favorite}')"           
+#             cursor.execute(query)
+#             connection.commit()
+#             return json.dumps({'CAT_ID': cursor.lastrowid, "SUCCESS":"The product was updated successfully"})
+#     except:
+#             return json.dumps({'ERROR':'​The product was not updated due to an error'})       
+
+    
+@delete('/product/<id>')
+def getProdcut(id):
+   try:
+        with connection.cursor() as cursor:
+                
+                query= f'delete  FROM product WHERE id="{id}"'
+                cursor.execute(query)
+                connection.commit()
+                return json.dumps(cursor.fetchone(),{'SUCCESS':'​​The product was deleted successfully',"CODE": 201})
+   except:
+           return json.dumps({'error':'​The product was not deleted due to an error',"CODE": 404})     
+       
 
 @get('/js/<filename:re:.*\.js>')
 def javascripts(filename):
