@@ -87,9 +87,7 @@ def add_category():
 def dell_category(id):
     try:
         with connection.cursor() as cursor:
-            print(id)
             query=f'DELETE FROM categories WHERE id="{id}"'
-            print(query)
             cursor.execute(query)
             connection.commit()
             return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201})
@@ -97,7 +95,30 @@ def dell_category(id):
             return json.dumps({'ERROR':'category not found, "CODE": 404'})   
      
      
-     
+@post("/product")
+def product():
+    cat=request.forms.get("category")
+    name =request.forms.get("title")
+    description =request.forms.get("desc")
+    favorite =request.forms.get("favorite")
+    price=request.forms.get("price")
+    img_url=request.forms.get("img_url")
+    
+    if favorite =="on":
+         favorite =1
+    else:
+         favroite=0
+    try:
+        with connection.cursor() as cursor:
+            prequery= f"select name from categories where id ='{cat}'"
+            cursor.execute(prequery)
+            cat_name=(cursor.fetchone()['name'])
+            query = f"insert into product (title,description,price,img_url,category,favorite) values ('{name}','{cat_name}','{price}','{img_url}','{cat}','{favorite}')"           
+            cursor.execute(query)
+            connection.commit()
+            return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201})
+    except:
+            return json.dumps({'ERROR':'error entering new product'})   
      
      
 
