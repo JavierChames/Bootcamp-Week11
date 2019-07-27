@@ -9,9 +9,6 @@ connection =pymysql.connect(host='localhost',
                             db='bookshoop',
                             cursorclass=pymysql.cursors.DictCursor)
 
-
-
-
 @get("/admin")
 def admin_portal():
 	return template("pages/admin.html")
@@ -20,38 +17,36 @@ def admin_portal():
 def index():
     return template("index.html")
 
+@post("/category")
+def add_category():
+    name =request.forms.get("name")
+    
+    try:
+        with connection.cursor() as cursor:
+        #     Check if new category allready exits in DB(no check of lower or upper case)
+            prequery=f'SELECT * FROM  categories where name="{name}"'
+            cursor.execute(prequery)
+            rc=cursor.rowcount
+            print(rc)   
+            if rc == 0:     
+                query = f"insert into categories (name) values ('{name}')"
+                cursor.execute(query)
+                connection.commit()
+                return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201,'STATUS':'​The category was created successfully'})
+            else:
+                 return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 200,'ERROR':' ​The category was not created due to an error','STATUS':'​Category already exists'})
+    except Exception as e:
+            return json.dumps({'ERROR':'error entering new category:'+repr(e)})
+
 @get("/categories")
 def categories():
     try:
         with connection.cursor() as cursor:
             query = "SELECT * FROM  categories"
             cursor.execute(query)
-        return json.dumps({'CATEGORIES':cursor.fetchall()})
+            return json.dumps({'CATEGORIES':cursor.fetchall(),"CODE": 200})
     except:
-         return json.dumps({'ERROR':'internal error'})
-     
-
-@get('/category/<id>/products')
-def loadProducts(id):
-   try:
-        with connection.cursor() as cursor:
-                
-                query= f'SELECT * FROM product WHERE category="{id}"'
-                cursor.execute(query)
-        return json.dumps({'PRODUCTS':cursor.fetchall()})
-   except:
-         return json.dumps({'error':'internal error'})     
-     
-     
-@get("/products")
-def products():
-    try:
-        with connection.cursor() as cursor:
-            query = "SELECT * FROM  product"
-            cursor.execute(query)
-        return json.dumps({'PRODUCTS':cursor.fetchall()})
-    except:
-         return json.dumps({'ERROR':'internal error'})     
+         return json.dumps({'ERROR':'internal error',"CODE": 500})
      
      
 @get('/product/<id>')
@@ -61,27 +56,10 @@ def getProdcut(id):
                 
                 query= f'SELECT * FROM product WHERE id="{id}"'
                 cursor.execute(query)
-                # print(json.dumps(cursor.fetchall()))
-                # if json.dumps(cursor.fetchall()) !=0:
-                    # print(json.dumps(cursor.fetchall()))
                 return json.dumps(cursor.fetchall())
-                # else:
-                    # return json.dumps({'error':'Product not found'})
    except:
            return json.dumps({'error':'DB problem'})     
        
-       
-@post("/category")
-def add_category():
-    name =request.forms.get("name")
-    try:
-        with connection.cursor() as cursor:
-            query = f"insert into categories (name) values ('{name}')"
-            cursor.execute(query)
-            connection.commit()
-            return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201})
-    except:
-            return json.dumps({'ERROR':'error entering new category'})
      
 @delete("/category/<id>")
 def dell_category(id):
@@ -103,55 +81,36 @@ def product():
     favorite =request.forms.get("favorite")
     price=request.forms.get("price")
     img_url=request.forms.get("img_url")
-    print(favorite)
     if favorite =="on":
-         favorite =1
+         favorite = 1
     else:
-         favorite=0
+         favorite = 0
     try:
         with connection.cursor() as cursor:
+        #     prequery1= f"select * from product where title ='{name}'"
+        #     print(prequery1)
+        #     cursor.execute(prequery1)
+        #     rc=cursor.rowcount
+        #     print(rc)
+        #     result=cursor.fetchone()['id']
+        #     cursor.execute(result)
+        #     print(result)    
+            
             prequery= f"select name from categories where id ='{cat}'"
             cursor.execute(prequery)
             cat_name=(cursor.fetchone()['name'])
+            cursor.execute(prequery)
             query = f"insert into product (title,description,price,img_url,category,favorite) values ('{name}','{cat_name}','{price}','{img_url}','{cat}','{favorite}')"
             cursor.execute(query)
             connection.commit()
             return json.dumps({'CAT_ID': cursor.lastrowid, "SUCCESS":"The product was added successfully"})
-    except:
-            return json.dumps({'ERROR':'​The product was not create due to an error'})   
-    
-    
-# @post("/product")
-# def update_product():
-#     cat=request.forms.get("category")
-#     name =request.forms.get("title")
-#     description =request.forms.get("desc")
-#     favorite =request.forms.get("favorite")
-#     price=request.forms.get("price")
-#     img_url=request.forms.get("img_url")
-    
-#     if favorite =="on":
-#          favorite =1
-#     else:
-#          favroite=0
-#     try:
-#         with connection.cursor() as cursor:
-#             prequery= f"update  from categories where id ='{cat}'"
-#             cursor.execute(prequery)
-#             cat_name=(cursor.fetchone()['name'])
-#             query = f"update product (title,description,price,img_url,category,favorite) values ('{name}','{cat_name}','{price}','{img_url}','{cat}','{favorite}')"           
-#             cursor.execute(query)
-#             connection.commit()
-#             return json.dumps({'CAT_ID': cursor.lastrowid, "SUCCESS":"The product was updated successfully"})
-#     except:
-#             return json.dumps({'ERROR':'​The product was not updated due to an error'})       
-
+    except Exception as e:
+            return json.dumps({'ERROR':'​The product was not create due to an error:'+repr(e)})   
     
 @delete('/product/<id>')
 def getProdcut(id):
    try:
         with connection.cursor() as cursor:
-                
                 query= f'delete  FROM product WHERE id="{id}"'
                 cursor.execute(query)
                 connection.commit()
@@ -159,11 +118,48 @@ def getProdcut(id):
    except:
            return json.dumps({'error':'​The product was not deleted due to an error',"CODE": 404})     
        
+    
+@delete('/category/<id>')
+def getProdcut(id):
+   try:
+        with connection.cursor() as cursor:
+                query= f'select *  FROM categories WHERE id="{id}"'
+                cursor.execute(query)
+                if cursor.rowcount == 0:
+                  return json.dumps({'ERROR':"product not found","CODE": 404})
+                else:        
+                        query= f'delete  FROM categories WHERE id="{id}"'
+                        cursor.execute(query)
+                        connection.commit()
+                        return json.dumps({'SUCCESS':'​​​The category was deleted successfully',"CODE": 201})
+   except Exception as e:
+           return json.dumps({'ERROR':'​The category was not deleted due to an error:'+repr(e),"CODE": 404,"MSG":"Category not found"})     
+
+@get("/products")
+def products():
+    try:
+        with connection.cursor() as cursor:
+            query = "SELECT * FROM  product"
+            cursor.execute(query)
+        return json.dumps({'PRODUCTS':cursor.fetchall(),'SUCCESS':"Products fetched","CODE": 200})
+    except:
+         return json.dumps({'ERROR':"​internal error",'CODE': 500})        
+       
+@get('/category/<id>/products')
+def loadProducts(id):
+   try:
+        with connection.cursor() as cursor:
+                query= f'SELECT * FROM product WHERE category="{id}"'
+                cursor.execute(query)
+                if cursor.rowcount == 0:
+                  return json.dumps({'ERROR':"category not found","CODE": 404})
+                return json.dumps({'PRODUCTS':cursor.fetchall(),'SUCCESS':"Products fetched","CODE": 200})
+   except:
+         return json.dumps({'ERROR':"​internal error",'CODE': 500}) 
 
 @get('/js/<filename:re:.*\.js>')
 def javascripts(filename):
     return static_file(filename, root='js')
-
 
 @get('/css/<filename:re:.*\.css>')
 def stylesheets(filename):
