@@ -34,7 +34,7 @@ def add_category():
                 connection.commit()
                 return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201,'ERROR':'​The category was created successfully','STATUS':'SUCCESS'})
             else:
-                 return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 200,'ERROR':' ​The category was not created due to an error',"STATUS":"​ERROR",'MSG':"Category already exists"})
+                 return json.dumps({"CODE": 200,'ERROR':' ​The category was not created due to an error',"STATUS":"​ERROR",'MSG':"Category already exists"})
     except Exception as e:
             return json.dumps({'ERROR':'error entering new category:'+repr(e)})
 
