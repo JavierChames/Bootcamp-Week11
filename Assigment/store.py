@@ -29,12 +29,12 @@ def add_category():
             rc=cursor.rowcount
             print(rc)   
             if rc == 0:     
-                query = f"insert into categories (name) values ('{name}')"
+                query = f"insert into categories (name) values ;('{name}')"
                 cursor.execute(query)
                 connection.commit()
                 return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201,'ERROR':'​The category was created successfully','STATUS':'SUCCESS'})
             else:
-                 return json.dumps({"CODE": 200,'ERROR':' ​The category was not created due to an error',"STATUS":"​ERROR",'MSG':"Category already exists"})
+                 return json.dumps({"CODE": 200,'ERROR':'The category was not created due to an error',"STATUS":"​ERROR",'MSG':"Category already exists"})
     except Exception as e:
             return json.dumps({'ERROR':'error entering new category:'+repr(e)})
 
@@ -79,7 +79,7 @@ def product():
     name =request.forms.get("title")
     description =request.forms.get("desc")
     favorite =request.forms.get("favorite")
-    price=request.forms.get("price")
+    price=int(request.forms.get("price"))
     img_url=request.forms.get("img_url")
     if favorite =="on":
          favorite = 1
@@ -87,11 +87,19 @@ def product():
          favorite = 0
     try:
         with connection.cursor() as cursor:
+            check_product_exists= f"select * from product where title ='{name}'"
+            cursor.execute(check_product_exists)
+            prod_id=json.dumps(cursor.fetchone()["id"])
+            rc=cursor.rowcount
             prequery= f"select name from categories where id ='{cat}'"
             cursor.execute(prequery)
-            cat_name=(cursor.fetchone()['name'])
+            cat_name=cursor.fetchone()['name']
             cursor.execute(prequery)
-            query = f"insert into product (title,description,price,img_url,category,favorite) values ('{name}','{cat_name}','{price}','{img_url}','{cat}','{favorite}')"
+            if rc ==0 :
+                query = f"insert into product (title,description,price,img_url,category,favorite) values ('{name}','{cat_name}','{price}','{img_url}','{cat}','{favorite}')"
+            else:
+                query = f"update product set title = '{name}', description = '{cat_name}',price = '{price}',img_url='{img_url}',category='{cat}',favorite='{favorite}'where id = '{prod_id}'"
+                print(query)
             cursor.execute(query)
             connection.commit()
             return json.dumps({'CAT_ID': cursor.lastrowid, "SUCCESS":"The product was added successfully"})
@@ -160,6 +168,5 @@ def stylesheets(filename):
 @get('/images/<filename:re:.*\.(jpg|png|gif|ico)>')
 def images(filename):
     return static_file(filename, root='images')
-
 
 run(host='localhost',port=argv[1],debug=True,reloader=True)
