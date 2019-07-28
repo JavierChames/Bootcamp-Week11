@@ -89,17 +89,17 @@ def product():
         with connection.cursor() as cursor:
             check_product_exists= f"select * from product where title ='{name}'"
             cursor.execute(check_product_exists)
-            prod_id=json.dumps(cursor.fetchone()["id"])
             rc=cursor.rowcount
+            if rc == 1: 
+                prod_id=json.dumps(cursor.fetchone()["id"])
             prequery= f"select name from categories where id ='{cat}'"
             cursor.execute(prequery)
             cat_name=cursor.fetchone()['name']
             cursor.execute(prequery)
-            if rc ==0 :
+            if rc == 0 :
                 query = f"insert into product (title,description,price,img_url,category,favorite) values ('{name}','{cat_name}','{price}','{img_url}','{cat}','{favorite}')"
             else:
-                query = f"update product set title = '{name}', description = '{cat_name}',price = '{price}',img_url='{img_url}',category='{cat}',favorite='{favorite}'where id = '{prod_id}'"
-                print(query)
+                query = f"update product set title = '{name}', description = '{cat_name}',price = '{price}',img_url='{img_url}',category='{cat}',favorite='{favorite}' where id = '{prod_id}'"
             cursor.execute(query)
             connection.commit()
             return json.dumps({'CAT_ID': cursor.lastrowid, "SUCCESS":"The product was added successfully"})
