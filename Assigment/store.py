@@ -32,9 +32,9 @@ def add_category():
                 query = f"insert into categories (name) values ('{name}')"
                 cursor.execute(query)
                 connection.commit()
-                return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201,'STATUS':'​The category was created successfully'})
+                return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 201,'ERROR':'​The category was created successfully','STATUS':'SUCCESS'})
             else:
-                 return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 200,'ERROR':' ​The category was not created due to an error','STATUS':'​Category already exists'})
+                 return json.dumps({'CAT_ID': cursor.lastrowid, "CODE": 200,'ERROR':' ​The category was not created due to an error',"STATUS":"​ERROR",'MSG':"Category already exists"})
     except Exception as e:
             return json.dumps({'ERROR':'error entering new category:'+repr(e)})
 
@@ -87,15 +87,6 @@ def product():
          favorite = 0
     try:
         with connection.cursor() as cursor:
-        #     prequery1= f"select * from product where title ='{name}'"
-        #     print(prequery1)
-        #     cursor.execute(prequery1)
-        #     rc=cursor.rowcount
-        #     print(rc)
-        #     result=cursor.fetchone()['id']
-        #     cursor.execute(result)
-        #     print(result)    
-            
             prequery= f"select name from categories where id ='{cat}'"
             cursor.execute(prequery)
             cat_name=(cursor.fetchone()['name'])
@@ -171,4 +162,4 @@ def images(filename):
     return static_file(filename, root='images')
 
 
-run(host='localhost', port=5000,debug=True,reloader=True)
+run(host='localhost',port=argv[1],debug=True,reloader=True)
